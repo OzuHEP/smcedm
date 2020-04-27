@@ -1,8 +1,7 @@
 #include "SMCEDM_Analysis.h"
 #include "progressbar.hpp"
 
-void SMCEDM_Analysis(int event_begin, int event_end)
-{
+void SMCEDM_Analysis(int event_begin, int event_end) {
 	gROOT->SetBatch();
 	int nthreads = 24;
 	ROOT::EnableImplicitMT(nthreads);
@@ -95,11 +94,10 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 	const int limit = myReader.GetEntries(1);
 	ProgressBar progressBar(limit, 70);
 
-	if (event_end > n_events) event_end = n_events;
+	if (event_end > n_events) { event_end = n_events; }
 
 	// Loop over Events
-	for (int i_event = event_begin; i_event < event_end; ++i_event)
-	{
+	for (int i_event = event_begin; i_event < event_end; ++i_event) {
 		++progressBar;
 		// display the bar
 		progressBar.display();
@@ -115,8 +113,7 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 		leptons dummy_lepton;
 
 		//******* count the number of negative and positive electrons *******//
-		for (int i_electron = 0; i_electron < *rv_Electron_size; ++i_electron)
-		{
+		for (int i_electron = 0; i_electron < *rv_Electron_size; ++i_electron) {
 			dummy_lepton.setPt(ra_Electron_pT.At(i_electron));
 			dummy_lepton.setEta(ra_Electron_Eta.At(i_electron));
 			dummy_lepton.setPhi(ra_Electron_Phi.At(i_electron));
@@ -131,8 +128,7 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 		std::vector<leptons> v_muons;
 		leptons dummy_muon;
 		//******* count the number of negative and positive muons *******//
-		for (int i_muon = 0; i_muon < *rv_Muon_size; ++i_muon)
-		{
+		for (int i_muon = 0; i_muon < *rv_Muon_size; ++i_muon) {
 			dummy_lepton.setPt(ra_Muon_pT.At(i_muon));
 			dummy_lepton.setEta(ra_Muon_Eta.At(i_muon));
 			dummy_lepton.setPhi(ra_Muon_Phi.At(i_muon));
@@ -147,8 +143,7 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 		std::vector<jets> v_jets;
 		jets dummy_jet;
 		//******* count the number of negative and positive muons *******//
-		for (int i_jet = 0; i_jet < *rv_Jet_size; ++i_jet)
-		{
+		for (int i_jet = 0; i_jet < *rv_Jet_size; ++i_jet) {
 			dummy_jet.setPt(ra_Jet_pT.At(i_jet));
 			dummy_jet.setEta(ra_Jet_Eta.At(i_jet));
 			dummy_jet.setPhi(ra_Jet_Phi.At(i_jet));
@@ -158,8 +153,7 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 			v_jets.push_back(dummy_jet);
 		}
 
-		if (v_electrons.size() + v_muons.size() < 1)
-		{
+		if (v_electrons.size() + v_muons.size() < 1) {
 			pass_lepton_criteria = 0;
 			n_lepton_cut++;
 		}
@@ -169,36 +163,34 @@ void SMCEDM_Analysis(int event_begin, int event_end)
 
 		n_btag = v_b_jets.size() - v_light_jets.size();
 
-		if (v_light_jets.size() < 2)
-		{
+		if (v_light_jets.size() < 2) {
 			pass_light_jet_criteria = 0;
 			n_light_jet_cut++;
 		}
 
-		if (n_btag < 2)
-		{
+		if (n_btag < 2) {
 			pass_b_jet_criteria = 0;
-			n_btag_cut++;
-		}
+			n_btag_cut++; }
 
-		if (ra_MissingET_MET[0] < MET_threshold)
-		{
+		if (ra_MissingET_MET[0] < MET_threshold) {
 			pass_MET_criteria = 0;
 			n_MET_cut++;
 		}
 
 		// EVENT SELECTION (skips event if not matching all the criteria below)
-		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_light_jet_criteria)
+		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_light_jet_criteria) {
 			continue;
-
+		}
 
 		auto v_W_candidates = create_W_candidates(v_light_jets);
 
-		if (n_btag > 0) 
+		if (n_btag > 0) {
 			auto v_had_top_candidates = create_had_top_candidates(v_b_jets, v_W_candidates);
+		}
 
-		for (auto& jet : v_jets) 
+		for (auto& jet : v_jets) {
 			jet_pt.push_back(jet.getPt());
+		}
 
 		n_jets     = v_jets.size();
 		n_bjets    = v_b_jets.size();
