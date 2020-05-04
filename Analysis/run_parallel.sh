@@ -1,10 +1,12 @@
 #!/bin/bash
+
 rm output.txt
 root -l "get_number_of_events.C(\"$1\", \"Delphes\")"
 
 n_events=$(<output.txt)
-interval=$((n_events/72))
+interval=$((n_events/36))
 
+start=`date +%s`
 echo "$n_events, $interval" 
 
 for (( i=0; i<=$n_events; i+=$interval ));
@@ -23,3 +25,7 @@ cd /mnt/harddisk4/scratch/
 hadd -f $2_delphes.root output*.root
 rm output*.root
 cd -
+end=`date +%s`
+runtime=$((end-start))
+
+echo $runtime
