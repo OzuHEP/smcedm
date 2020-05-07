@@ -289,12 +289,7 @@ double get_event_shape_variable(std::vector<jets> v_jets, string option = "aplan
         if (option == "aplanarity")
             return aplanarity;
         else if (option == "sphericity")
-            return sphericity;
-    }
-
-    else
-    {
-        return -99999;
+        return sphericity;
     }
 }
 
@@ -417,4 +412,15 @@ std::vector<jets> create_light_jet_collection(std::vector<jets> v_jets)
     }
 
     return v_light_jets;
+}
+
+std::vector<float> create_jet_pt_vector(std::vector<jets> v_jets, int n)
+{
+    std::vector<float> jet_pt;
+
+    for (int i_jet = 0; i_jet < n; ++i_jet)
+    {
+        jet_pt.push_back(v_jets.at(i_jet).getPt());
+    }
+    return jet_pt;
 }

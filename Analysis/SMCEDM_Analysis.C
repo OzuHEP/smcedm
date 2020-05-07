@@ -22,7 +22,6 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 	int n_jets;
 	int n_leptons;
 	int n_bjets;
-
 	
 	float scalar_ht;
 	float met;
@@ -30,25 +29,32 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 	float aplanarity;
 	float sphericity;
 
-	float jet_pt[4];
+	float weight;
+	float jet_pt_1, jet_pt_2, jet_pt_3, jet_pt_4;
+	float fox_wolfram_1, fox_wolfram_2, fox_wolfram_3, fox_wolfram_4;
 
-	float weight[1];
-	std::vector<float> fox_wolfram;
+	std::vector<float> aux_jet_pt;
+	std::vector<float> aux_fox_wolfram;
 
-	outtree->Branch("br_weight"      , &weight,      "weight/F");
-	outtree->Branch("br_njets"       , &n_jets,      "n_jets/I");
-	outtree->Branch("br_nleptons"    , &n_leptons,   "n_leptons/I");
-	outtree->Branch("br_nbjets"      , &n_bjets,     "n_bjets/I");
-	outtree->Branch("br_scalar_HT"   , &scalar_ht,   "scalar_ht/F");
-	outtree->Branch("br_jet_pt"      , &jet_pt,      "jet_pt/F");
-	outtree->Branch("br_MET"         , &met,         "MET/F");
-	outtree->Branch("br_MET_Phi"     , &met_phi,     "MET_Phi/F");
-	outtree->Branch("br_sphericity"  , &sphericity,  "sphericity/F");
-	outtree->Branch("br_aplanarity"  , &aplanarity,  "aplanarity/F");
-	outtree->Branch("br_Fox_Wolfram" , &fox_wolfram);
-
+	outtree->Branch("br_weight"        , &weight,        "weight/F"       );
+	outtree->Branch("br_njets"         , &n_jets,        "n_jets/I"       );
+	outtree->Branch("br_nleptons"      , &n_leptons,     "n_leptons/I"    );
+	outtree->Branch("br_nbjets"        , &n_bjets,       "n_bjets/I"      );
+	outtree->Branch("br_scalar_HT"     , &scalar_ht,     "scalar_ht/F"    );
+	outtree->Branch("br_jet_pt_1"      , &jet_pt_1,      "jet_pt_1/F"     );
+	outtree->Branch("br_jet_pt_2"      , &jet_pt_2,      "jet_pt_2/F"     );
+	outtree->Branch("br_jet_pt_3"      , &jet_pt_3,      "jet_pt_3/F"     );
+	outtree->Branch("br_jet_pt_4"      , &jet_pt_4,      "jet_pt_4/F"     );
+	outtree->Branch("br_MET"           , &met,           "MET/F"          );
+	outtree->Branch("br_MET_Phi"       , &met_phi,       "MET_Phi/F"      );
+	outtree->Branch("br_sphericity"    , &sphericity,    "sphericity/F"   );
+	outtree->Branch("br_aplanarity"    , &aplanarity,    "aplanarity/F"   );
+	outtree->Branch("br_Fox_Wolfram_1" , &fox_wolfram_1, "fox_wolfram_1/F");
+	outtree->Branch("br_Fox_Wolfram_2" , &fox_wolfram_2, "fox_wolfram_2/F");
+	outtree->Branch("br_Fox_Wolfram_3" , &fox_wolfram_3, "fox_wolfram_3/F");
+	outtree->Branch("br_Fox_Wolfram_4" , &fox_wolfram_4, "fox_wolfram_4/F");
 	
-    TTreeReaderArray<float>          ra_event_weight(myReader, "Weight.Weight");
+        TTreeReaderArray<float>          ra_event_weight(myReader, "Weight.Weight");
 
 	//Jet Definitions
 	TTreeReaderValue<int>            rv_Jet_size(myReader, "Jet_size");
@@ -116,7 +122,7 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		bool pass_lepton_criteria(1), pass_b_jet_criteria(1), pass_MET_criteria(1), pass_njet_criteria(1);
 
 		myReader.SetEntry(i_event);
-		weight[0] = ra_event_weight[0];
+		weight = ra_event_weight[0];
 
 		// put all electrons to a container (vector of leptons object)
 		std::vector<leptons> v_electrons;
@@ -185,7 +191,7 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		}
 
 		if (n_btag < 2) {
-			pass_b_jet_criteria = 0;
+			pass_b_jet_criteria = 1;
 			n_btag_cut++; }
 
 		if (ra_MissingET_MET[0] < MET_threshold) {
@@ -204,18 +210,25 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 			auto v_had_top_candidates = create_had_top_candidates(v_b_jets, v_W_candidates);
 		}
 
-		for (int i_jet=0; i_jet<4; ++i_jet) {
-			jet_pt[i_jet]= v_jets.at(i_jet).getPt();
-		}
-
+		aux_jet_pt = create_jet_pt_vector(v_jets, 4);
 		n_jets     = v_jets.size();
 		n_bjets    = v_b_jets.size();
 		n_leptons  = v_electrons.size() + v_muons.size();
 		scalar_ht  = ra_scalar_HT[0];
 
-		aplanarity  = get_event_shape_variable(v_jets, "aplanarity");
-		sphericity  = get_event_shape_variable(v_jets, "sphericity");
-		fox_wolfram = get_fox_wolfram_parameters(v_jets, 4);
+		aplanarity     = get_event_shape_variable(v_jets, "aplanarity");
+		sphericity      = get_event_shape_variable(v_jets, "sphericity");
+		aux_fox_wolfram = get_fox_wolfram_parameters(v_jets, 4);
+	
+		jet_pt_1 = aux_jet_pt.at(0);
+		jet_pt_2 = aux_jet_pt.at(1);
+		jet_pt_3 = aux_jet_pt.at(2);
+		jet_pt_4 = aux_jet_pt.at(3);
+
+		fox_wolfram_1 = aux_fox_wolfram.at(0);
+		fox_wolfram_2 = aux_fox_wolfram.at(1);
+		fox_wolfram_3 = aux_fox_wolfram.at(2);
+		fox_wolfram_4 = aux_fox_wolfram.at(3);
 
 		met     = ra_MissingET_MET[0];
 		met_phi = ra_MissingET_Phi[0];
