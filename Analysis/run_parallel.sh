@@ -1,6 +1,8 @@
 #!/bin/bash
 
-rm output.txt
+if [ -f output.txt ]
+	rm output.txt
+
 root -l "get_number_of_events.C(\"$1\", \"Delphes\")"
 
 n_events=$(<output.txt)
