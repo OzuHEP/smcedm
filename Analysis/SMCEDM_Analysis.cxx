@@ -1,20 +1,19 @@
 #include "SMCEDM_Analysis.h"
 #include "progressbar.hpp"
 
-void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
+void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
+{
 
-	gSystem->RedirectOutput("/dev/null");
+	//gSystem->RedirectOutput("/dev/null");
 	int nthreads = 24;
 	ROOT::EnableImplicitMT(nthreads);
 
 	//auto file = new TFile("delphes.root");
-	auto file = new TFile(infile_name);
-	//auto file = new TFile("/mnt/harddisk1/ttbar/dtG_2/Events/delphes.root");
+	auto file = new TFile(infile_name.c_str());
+
 	TTreeReader myReader("Delphes", file);
 
-	char outfile_name[50];
-	sprintf(outfile_name, "/mnt/harddisk4/scratch/output%d_%d.root", event_begin, event_end);
-	auto outfile = new TFile(outfile_name, "RECREATE");
+	auto outfile = new TFile(outfile_name.c_str(), "RECREATE");
 
 	// Create the TTree and branches
 	TTree *outtree = new TTree("outtree", "outtree");
@@ -22,7 +21,7 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 	int n_jets;
 	int n_leptons;
 	int n_bjets;
-	
+
 	float scalar_ht;
 	float met;
 	float met_phi;
@@ -53,8 +52,8 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 	outtree->Branch("br_Fox_Wolfram_2" , &fox_wolfram_2, "fox_wolfram_2/F");
 	outtree->Branch("br_Fox_Wolfram_3" , &fox_wolfram_3, "fox_wolfram_3/F");
 	outtree->Branch("br_Fox_Wolfram_4" , &fox_wolfram_4, "fox_wolfram_4/F");
-	
-        TTreeReaderArray<float>          ra_event_weight(myReader, "Weight.Weight");
+
+	TTreeReaderArray<float>          ra_event_weight(myReader, "Weight.Weight");
 
 	//Jet Definitions
 	TTreeReaderValue<int>            rv_Jet_size(myReader, "Jet_size");
@@ -107,15 +106,15 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 
 	// initialize the progress bar
 	const int limit = myReader.GetEntries(1);
-	//ProgressBar progressBar(limit, 70);
+	ProgressBar progressBar(limit, 70);
 
-	if (event_end > n_events) { event_end = n_events; }
 
 	// Loop over Events
-	for (int i_event = event_begin; i_event < event_end; ++i_event) {
-		//++progressBar;
+	for (int i_event = 0; i_event < n_events; ++i_event)
+	{
+		++progressBar;
 		// display the bar
-		//progressBar.display();
+		progressBar.display();
 
 		n_btag = 0;
 
@@ -129,7 +128,8 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		leptons dummy_lepton;
 
 		//******* count the number of negative and positive electrons *******//
-		for (int i_electron = 0; i_electron < *rv_Electron_size; ++i_electron) {
+		for (int i_electron = 0; i_electron < *rv_Electron_size; ++i_electron)
+		{
 			dummy_lepton.setPt(ra_Electron_pT.At(i_electron));
 			dummy_lepton.setEta(ra_Electron_Eta.At(i_electron));
 			dummy_lepton.setPhi(ra_Electron_Phi.At(i_electron));
@@ -144,7 +144,8 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		std::vector<leptons> v_muons;
 		leptons dummy_muon;
 		//******* count the number of negative and positive muons *******//
-		for (int i_muon = 0; i_muon < *rv_Muon_size; ++i_muon) {
+		for (int i_muon = 0; i_muon < *rv_Muon_size; ++i_muon)
+		{
 			dummy_lepton.setPt(ra_Muon_pT.At(i_muon));
 			dummy_lepton.setEta(ra_Muon_Eta.At(i_muon));
 			dummy_lepton.setPhi(ra_Muon_Phi.At(i_muon));
@@ -159,7 +160,8 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		std::vector<jets> v_jets;
 		jets dummy_jet;
 		//******* count the number of negative and positive muons *******//
-		for (int i_jet = 0; i_jet < *rv_Jet_size; ++i_jet) {
+		for (int i_jet = 0; i_jet < *rv_Jet_size; ++i_jet)
+		{
 			dummy_jet.setPt(ra_Jet_pT.At(i_jet));
 			dummy_jet.setEta(ra_Jet_Eta.At(i_jet));
 			dummy_jet.setPhi(ra_Jet_Phi.At(i_jet));
@@ -169,13 +171,16 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 			v_jets.push_back(dummy_jet);
 		}
 
-		if (v_electrons.size() == 1 && v_muons.size()==0) {
+		if (v_electrons.size() == 1 && v_muons.size() == 0)
+		{
 			pass_lepton_criteria = 1;
 		}
-		else if (v_muons.size() == 1 && v_electrons.size()==0) {
+		else if (v_muons.size() == 1 && v_electrons.size() == 0)
+		{
 			pass_lepton_criteria = 1;
 		}
-		else {
+		else
+		{
 			pass_lepton_criteria = 0;
 			n_lepton_cut++;
 		}
@@ -185,28 +190,34 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 
 		n_btag = v_b_jets.size();
 
-		if (v_jets.size() < 4) {
+		if (v_jets.size() < 4)
+		{
 			pass_njet_criteria = 0;
 			n_jet_cut++;
 		}
 
-		if (n_btag < 2) {
+		if (n_btag < 2)
+		{
 			pass_b_jet_criteria = 1;
-			n_btag_cut++; }
+			n_btag_cut++;
+		}
 
-		if (ra_MissingET_MET[0] < MET_threshold) {
+		if (ra_MissingET_MET[0] < MET_threshold)
+		{
 			pass_MET_criteria = 0;
 			n_MET_cut++;
 		}
 
 		// EVENT SELECTION (skips event if not matching all the criteria below)
-		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_njet_criteria) {
+		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_njet_criteria)
+		{
 			continue;
 		}
 
 		auto v_W_candidates = create_W_candidates(v_light_jets);
 
-		if (n_btag > 1) {
+		if (n_btag > 1)
+		{
 			auto v_had_top_candidates = create_had_top_candidates(v_b_jets, v_W_candidates);
 		}
 
@@ -219,7 +230,7 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 		aplanarity     = get_event_shape_variable(v_jets, "aplanarity");
 		sphericity      = get_event_shape_variable(v_jets, "sphericity");
 		aux_fox_wolfram = get_fox_wolfram_parameters(v_jets, 4);
-	
+
 		jet_pt_1 = aux_jet_pt.at(0);
 		jet_pt_2 = aux_jet_pt.at(1);
 		jet_pt_3 = aux_jet_pt.at(2);
@@ -239,10 +250,23 @@ void SMCEDM_Analysis(TString infile_name, int event_begin, int event_end) {
 
 	outfile->cd();
 	outtree->Write();
+	outfile->Close();
 
 	std::cout << "n_jet_cut: " << n_jet_cut << std::endl;
 	std::cout << "n_btag_cut: " << n_btag_cut << std::endl;
 	std::cout << "n_lepton_cut: " << n_lepton_cut << std::endl;
 	std::cout << "n_MET_cut: " << n_MET_cut << std::endl;
 	std::cout << "n_events_passed/n_events: " << n_events_passed << "/" << n_events << std::endl;
+}
+
+int main(int argc, char **argv)
+{
+	if (argc != 3)
+	{
+		std::cout << "Use executable with following arguments: ./SMCEDM_Analysis input event_begin event_end" << std::endl;
+		return -1;
+	}
+	std::string infile_name  = argv[1];
+	std::string outfile_name = argv[2];
+	SMCEDM_Analysis(infile_name, outfile_name);
 }

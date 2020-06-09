@@ -1,3 +1,21 @@
+#include "TH1F.h"
+#include "TLorentzVector.h"
+#include "TMatrixDSym.h"
+#include "TMatrixDSymEigen.h"
+#include "TROOT.h"
+#include "TSystem.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TTreeReader.h"
+#include "TTreeReaderArray.h"
+#include "TTreeReaderValue.h"
+
+#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <cmath>
+
 //jet class definitons
 class jets
 {
@@ -32,7 +50,7 @@ inline jets::jets(double Pt, double Eta, double Phi, double M, int BTag)
     phi  = Phi;
     m    = M;
     btag = BTag;
-};
+}
 
 void jets::setAll(double Pt, double Eta, double Phi, double M, int BTag)
 {
@@ -41,7 +59,7 @@ void jets::setAll(double Pt, double Eta, double Phi, double M, int BTag)
     phi  = Phi;
     m    = M;
     btag = BTag;
-};
+}
 
 void jets::setPt(double Pt) {pt = Pt;}
 void jets::setEta(double Eta) {eta = Eta;}
@@ -98,7 +116,7 @@ inline leptons::leptons(double Pt, double Eta, double Phi, double M, double Q, i
     m = M;
     q = Q;
     pdgid = PDGID;
-};
+}
 
 void leptons::setAll(double Pt, double Eta, double Phi, double M, double Q, int PDGID)
 {
@@ -108,7 +126,7 @@ void leptons::setAll(double Pt, double Eta, double Phi, double M, double Q, int 
     m = M;
     q = Q;
     pdgid = PDGID;
-};
+}
 
 void leptons::setPt(double Pt) {pt = Pt;}
 void leptons::setEta(double Eta) {eta = Eta;}
@@ -166,7 +184,7 @@ inline candidate::candidate(double Pt, double Eta, double Phi, double M)
     eta  = Eta;
     phi  = Phi;
     m    = M;
-};
+}
 
 inline candidate::candidate(jets daughter1, jets daughter2)
 {
@@ -177,7 +195,7 @@ inline candidate::candidate(jets daughter1, jets daughter2)
     eta = candidate_4P.Eta();
     phi = candidate_4P.Phi();
     m   = candidate_4P.M();
-};
+}
 
 inline candidate::candidate(leptons daughter1, leptons daughter2)
 {
@@ -188,7 +206,7 @@ inline candidate::candidate(leptons daughter1, leptons daughter2)
     eta = candidate_4P.Eta();
     phi = candidate_4P.Phi();
     m   = candidate_4P.M();
-};
+}
 
 inline candidate::candidate(candidate daughter1, jets daughter2)
 {
@@ -199,7 +217,7 @@ inline candidate::candidate(candidate daughter1, jets daughter2)
     eta = candidate_4P.Eta();
     phi = candidate_4P.Phi();
     m   = candidate_4P.M();
-};
+}
 
 
 void candidate::setAll(double Pt, double Eta, double Phi, double M)
@@ -208,7 +226,7 @@ void candidate::setAll(double Pt, double Eta, double Phi, double M)
     eta  = Eta;
     phi  = Phi;
     m    = M;
-};
+}
 
 void candidate::setPt(double Pt) {pt = Pt;}
 void candidate::setEta(double Eta) {eta = Eta;}
@@ -230,7 +248,7 @@ TLorentzVector candidate::get4P()
 
 //////////////////////////////function definitions///////////////////////////////////////////////
 
-double get_event_shape_variable(std::vector<jets> v_jets, string option = "aplanarity")
+double get_event_shape_variable(std::vector<jets> v_jets, std::string option = "aplanarity")
 {
     if (v_jets.size() > 0)
     {
@@ -241,7 +259,7 @@ double get_event_shape_variable(std::vector<jets> v_jets, string option = "aplan
 
         double sump2(0), sumE(0);
 
-        for (int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
+        for (unsigned int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
         {
             Sxx += v_jets.at(i_jet).get4P().Px() * v_jets.at(i_jet).get4P().Px();
             Sxy += v_jets.at(i_jet).get4P().Px() * v_jets.at(i_jet).get4P().Py();
@@ -328,9 +346,9 @@ std::vector<float> get_fox_wolfram_parameters(std::vector<jets> v_jets, int l_ma
     double E_vis2 = get_sumE(v_jets) * get_sumE(v_jets);
     double cos_omega;
 
-    for (int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
+    for (unsigned int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
     {
-        for (int j_jet = 0; j_jet < v_jets.size(); ++j_jet)
+        for (unsigned int j_jet = 0; j_jet < v_jets.size(); ++j_jet)
         {
             if (i_jet <= j_jet)
             {
@@ -351,9 +369,9 @@ std::vector<float> get_fox_wolfram_parameters(std::vector<jets> v_jets, int l_ma
 std::vector<candidate> create_W_candidates(std::vector<jets> v_light_jets)
 {
     std::vector<candidate> v_W_candidates;
-    for (int i_jet = 0; i_jet < v_light_jets.size(); ++i_jet)
+    for (unsigned int i_jet = 0; i_jet < v_light_jets.size(); ++i_jet)
     {
-        for (int j_jet = 0; j_jet < v_light_jets.size(); ++j_jet)
+        for (unsigned int j_jet = 0; j_jet < v_light_jets.size(); ++j_jet)
         {
             if (i_jet < j_jet)
             {
@@ -370,9 +388,9 @@ std::vector<candidate> create_had_top_candidates(std::vector<jets> v_b_jets, std
 {
     std::vector<candidate> v_had_top_candidates;
 
-    for (int i_w_candidate = 0; i_w_candidate < v_W_candidates.size(); ++i_w_candidate)
+    for (unsigned int i_w_candidate = 0; i_w_candidate < v_W_candidates.size(); ++i_w_candidate)
     {
-        for (int j_bjet = 0; j_bjet < v_b_jets.size(); ++j_bjet)
+        for (unsigned int j_bjet = 0; j_bjet < v_b_jets.size(); ++j_bjet)
         {
             candidate dummy_candidate(v_W_candidates.at(i_w_candidate), v_b_jets.at(j_bjet));
             v_had_top_candidates.push_back(dummy_candidate);
@@ -388,7 +406,7 @@ std::vector<jets> create_b_jet_collection(std::vector<jets> v_jets)
 {
     std::vector<jets> v_b_jets;
 
-    for (int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
+    for (unsigned int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
     {
         if (v_jets.at(i_jet).getBTag() == 1)
         {
@@ -403,7 +421,7 @@ std::vector<jets> create_light_jet_collection(std::vector<jets> v_jets)
 {
     std::vector<jets> v_light_jets;
 
-    for (int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
+    for (unsigned int i_jet = 0; i_jet < v_jets.size(); ++i_jet)
     {
         if (v_jets.at(i_jet).getBTag() != 1)
         {
