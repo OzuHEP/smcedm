@@ -1,7 +1,7 @@
 #include "SMCEDM_Analysis.h"
 #include "progressbar.hpp"
 
-void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
+void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_btag_threshold, int n_light_jet_threshold, float MET_threshold)
 {
 
 	//gSystem->RedirectOutput("/dev/null");
@@ -102,7 +102,6 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
 	int n_lepton_cut = 0;
 	int n_MET_cut  = 0;
 	int n_events_passed = 0;
-	float MET_threshold = 20.0;
 
 	// initialize the progress bar
 	const int limit = myReader.GetEntries(1);
@@ -190,15 +189,15 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
 
 		n_btag = v_b_jets.size();
 
-		if (v_jets.size() < 4)
+		if (v_jets.size() < n_light_jet_threshold)
 		{
 			pass_njet_criteria = 0;
 			n_jet_cut++;
 		}
 
-		if (n_btag < 2)
+		if (n_btag < n_btag_threshold)
 		{
-			pass_b_jet_criteria = 1;
+			pass_b_jet_criteria = 0;
 			n_btag_cut++;
 		}
 
@@ -209,7 +208,7 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
 		}
 
 		// EVENT SELECTION (skips event if not matching all the criteria below)
-		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_njet_criteria)
+		if (!pass_lepton_criteria || !pass_MET_criteria || !pass_njet_criteria || !pass_b_jet_criteria)
 		{
 			continue;
 		}
@@ -261,12 +260,15 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name )
 
 int main(int argc, char **argv)
 {
-	if (argc != 3)
+	/*if (argc != 5)
 	{
-		std::cout << "Use executable with following arguments: ./SMCEDM_Analysis input event_begin event_end" << std::endl;
+		std::cout << "Use executable with following arguments: ./SMCEDM_Analysis input event_begin event_end n_btag n_light_jet MET_threshold" << std::endl;
 		return -1;
-	}
-	std::string infile_name  = argv[1];
-	std::string outfile_name = argv[2];
-	SMCEDM_Analysis(infile_name, outfile_name);
+	}*/
+	std::string infile_name   = argv[1];
+	std::string outfile_name  = argv[2];
+        int n_btag_threshold      = atoi(argv[3]);
+        int n_light_jet_threshold = atoi(argv[4]);
+        float MET_threshold       = atof(argv[5]);
+	SMCEDM_Analysis(infile_name, outfile_name, n_btag_threshold, n_light_jet_threshold, MET_threshold);
 }
