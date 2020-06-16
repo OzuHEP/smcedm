@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/python
 
 import os, sys
 
@@ -19,4 +19,3 @@ print("analysis is running with the following parameters:")
 print( "input file_name: " + infile_name + "\n" + "output file_name: " + outfile_name + "\n" +  "number of required btag jets: " + n_btag + "\n" + "number of required light jets: " + n_light_jet + "\n" + "MET threshold: " + MET_threshold + " GeV")
 
 os.system( "./SMCEDM_Analysis " + infile_name + " " + outfile_name + " " + n_btag + " " + n_light_jet + " " + MET_threshold)
-os.wait()
