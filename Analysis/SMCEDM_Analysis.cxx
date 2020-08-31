@@ -31,7 +31,7 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 	float weight;
 	float jet_pt_1, jet_pt_2, jet_pt_3, jet_pt_4;
 	float fox_wolfram_1, fox_wolfram_2, fox_wolfram_3, fox_wolfram_4;
-
+	float operator_2;
 	std::vector<float> aux_jet_pt;
 	std::vector<float> aux_fox_wolfram;
 
@@ -52,7 +52,7 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 	outtree->Branch("br_Fox_Wolfram_2" , &fox_wolfram_2, "fox_wolfram_2/F");
 	outtree->Branch("br_Fox_Wolfram_3" , &fox_wolfram_3, "fox_wolfram_3/F");
 	outtree->Branch("br_Fox_Wolfram_4" , &fox_wolfram_4, "fox_wolfram_4/F");
-
+	outtree->Branch("br_operator_2"    , &operator_2,    "operator_2/F"   );
 	TTreeReaderArray<float>          ra_event_weight(myReader, "Weight.Weight");
 
 	//Jet Definitions
@@ -102,7 +102,6 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 	int n_lepton_cut = 0;
 	int n_MET_cut  = 0;
 	int n_events_passed = 0;
-
 	// initialize the progress bar
 	const int limit = myReader.GetEntries(1);
 	ProgressBar progressBar(limit, 70);
@@ -125,7 +124,7 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 		// put all electrons to a container (vector of leptons object)
 		std::vector<leptons> v_electrons;
 		leptons dummy_lepton;
-
+		leptons the_lepton;
 		//******* count the number of negative and positive electrons *******//
 		for (int i_electron = 0; i_electron < *rv_Electron_size; ++i_electron)
 		{
@@ -173,10 +172,12 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 		if (v_electrons.size() == 1 && v_muons.size() == 0)
 		{
 			pass_lepton_criteria = 1;
+			the_lepton = v_electrons.at(0);
 		}
 		else if (v_muons.size() == 1 && v_electrons.size() == 0)
 		{
 			pass_lepton_criteria = 1;
+			the_lepton = v_muons.at(0);
 		}
 		else
 		{
@@ -212,7 +213,11 @@ void SMCEDM_Analysis(std::string infile_name , std::string outfile_name , int n_
 		{
 			continue;
 		}
+		else{
+			n_events_passed += 1;
+		}
 
+      		operator_2 = calculate_operator_2(v_b_jets, the_lepton, v_light_jets.at(0)); 
 		auto v_W_candidates = create_W_candidates(v_light_jets);
 
 		if (n_btag > 1)
