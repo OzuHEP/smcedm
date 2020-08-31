@@ -303,7 +303,61 @@ TLorentzVector candidate::get4P()
         TLorentzVector dummy4P;
         dummy4P.SetPtEtaPhiM(pt, eta, phi, m);
         return dummy4P;
+
+
+
+
+////////////////////////////////////////////// calculate Delta_R by using etas and phis////////////////////
+
+double deltaR(TLorentzVector g1,TLorentzVector g2)
+{
+	eta1 = g1.Eta();
+	eta2=  g2.Eta();
+	phi1 = g1.Phi();
+	phi2 = g2.Phi();
+	double deltaEta = eta1-eta2;
+	double deltaPhi = phi1-phi2;
+	return Sqrt((deltaEta)**2.0 + (deltaPhi)**2.0)
+
+
 }
+/////////////////////////////////////////  Delta_R calculation ends here /////////////////////////////
+
+double epsilon(TLorentzVector px, TLorentzVector py, TLorentzVector pz, TLorentzVector pt )
+{
+/// need 4x4 matrix
+	eps(0,0) = px.Px();
+	eps(0,1) = px.Py();
+	eps(0,2) = px.Pz();
+	eps(0,3) = px.Energy();   //first row
+
+	eps(1,0) = py.Px();
+	eps(1,1) = py.Py();
+	eps(1,2) = py.Pz();
+	eps(1,3) = py.Energy();   //second row
+
+	eps(2,0) = pz.Px();
+	eps(2,1) = pz.Py();
+	eps(2,2) = pz.Pz();
+	eps(2,3) = pz.Energy();   //third row
+
+
+	eps(3,0) = pt.Px();
+	eps(3,1) = pt.Py();
+	eps(3,2) = pt.Pz();
+	eps(3,3) = pt.Energy();   //fourth row
+
+	Tmatrix eps(4,4);           // It is written from Appendix (A2) Alper Hodja
+
+	// to calculate epsilon it is needed to take matrix determinant
+	return eps.Determinant();
+
+}
+
+
+
+
+
 
 
 //////////////////////////////function definitions///////////////////////////////////////////////
