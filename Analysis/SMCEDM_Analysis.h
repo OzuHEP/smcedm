@@ -588,11 +588,13 @@ double calculate_operator_14(std::vector<jets> v_b_jets, leptons lepton, jets li
         return get_epsilon(P, (bjet.get4P()+bjetbar.get4P()), lepton.get4P(), light_jet.get4P());
 }
 
-//double calculate_operator_10(std::vector<jets> v_b_jets, leptons lepton, jets light_jet){
+double calculate_operator_10(std::vector<jets> v_b_jets, leptons lepton, jets light_jet){
 
-//	TLorentzVector q(0,0,13000,0)
+	TLorentzVector q(0,0,13000,0)
+	auto bjet        = v_b_jets.at(0);
+	auto bjetbar     = v_b_jets.at(1);
+	eps              = get_epsilon(bjet.get4P(),bjetbar.get4P(),q,light_jet.get4P());
 
 
-
-
-//}
+	return q(bjet.get4P()-bjetbar.get4P())eps;
+}
