@@ -303,61 +303,7 @@ TLorentzVector candidate::get4P()
         TLorentzVector dummy4P;
         dummy4P.SetPtEtaPhiM(pt, eta, phi, m);
         return dummy4P;
-
-
-
-
-////////////////////////////////////////////// calculate Delta_R by using etas and phis////////////////////
-
-double deltaR(TLorentzVector g1,TLorentzVector g2)
-{
-	eta1 = g1.Eta();
-	eta2=  g2.Eta();
-	phi1 = g1.Phi();
-	phi2 = g2.Phi();
-	double deltaEta = eta1-eta2;
-	double deltaPhi = phi1-phi2;
-	return Sqrt((deltaEta)**2.0 + (deltaPhi)**2.0)
-
-
 }
-/////////////////////////////////////////  Delta_R calculation ends here /////////////////////////////
-
-double epsilon(TLorentzVector px, TLorentzVector py, TLorentzVector pz, TLorentzVector pt )
-{
-/// need 4x4 matrix
-	eps(0,0) = px.Px();
-	eps(0,1) = px.Py();
-	eps(0,2) = px.Pz();
-	eps(0,3) = px.Energy();   //first row
-
-	eps(1,0) = py.Px();
-	eps(1,1) = py.Py();
-	eps(1,2) = py.Pz();
-	eps(1,3) = py.Energy();   //second row
-
-	eps(2,0) = pz.Px();
-	eps(2,1) = pz.Py();
-	eps(2,2) = pz.Pz();
-	eps(2,3) = pz.Energy();   //third row
-
-
-	eps(3,0) = pt.Px();
-	eps(3,1) = pt.Py();
-	eps(3,2) = pt.Pz();
-	eps(3,3) = pt.Energy();   //fourth row
-
-	Tmatrix eps(4,4);           // It is written from Appendix (A2) Alper Hodja
-
-	// to calculate epsilon it is needed to take matrix determinant
-	return eps.Determinant();
-
-}
-
-
-
-
-
 
 
 //////////////////////////////function definitions///////////////////////////////////////////////
@@ -558,3 +504,95 @@ std::vector<float> create_jet_pt_vector(std::vector<jets> v_jets, int n)
         }
         return jet_pt;
 }
+
+
+double Sqrt(double number) {
+	return pow(number, 0.5);
+}
+
+double deltaR(TLorentzVector g1,TLorentzVector g2){
+
+	double eta1 = g1.Eta();
+	double eta2=  g2.Eta();
+	double phi1 = g1.Phi();
+	double phi2 = g2.Phi();
+	double deltaEta = eta1-eta2;
+	double deltaPhi = phi1-phi2;
+	return TMath::Hypot(deltaEta , deltaPhi);
+
+
+}
+
+
+double get_epsilon(TLorentzVector p1, TLorentzVector p2, TLorentzVector p3, TLorentzVector p4){
+	/// need 4x4 matrix
+	TMatrix eps(4,4);
+	eps(0,0) = p1.Px();
+	eps(0,1) = p1.Py();
+	eps(0,2) = p1.Pz();
+	eps(0,3) = p1.Energy();   //first row
+
+	eps(1,0) = p2.Px();
+	eps(1,1) = p2.Py();
+	eps(1,2) = p2.Pz();
+	eps(1,3) = p2.Energy();   //second row
+
+	eps(2,0) = p3.Px();
+	eps(2,1) = p3.Py();
+	eps(2,2) = p3.Pz();
+	eps(2,3) = p3.Energy();   //third row
+
+
+	eps(3,0) = p4.Px();
+	eps(3,1) = p4.Py();
+	eps(3,2) = p4.Pz();
+	eps(3,3) = p4.Energy();   //fourth row
+	return eps.Determinant();
+}
+
+std::vector<jets> find_b_l_bj(std::vector<jets> v_b_jets, leptons lepton){
+
+        std::vector<jets> bl_sorted;
+
+        auto deltaR_b1_l = deltaR(v_b_jets.at(0).get4P(), lepton.get4P());
+        auto deltaR_b2_l = deltaR(v_b_jets.at(1).get4P(), lepton.get4P());
+
+        if(deltaR_b1_l < deltaR_b2_l){
+                bl_sorted.push_back(v_b_jets.at(0));
+                bl_sorted.push_back(v_b_jets.at(1));
+        }
+        else{   
+                bl_sorted.push_back(v_b_jets.at(1));
+                bl_sorted.push_back(v_b_jets.at(0));
+        }
+
+        return bl_sorted;
+}
+
+double calculate_operator_2(std::vector<jets> v_b_jets, leptons lepton, jets light_jet) {
+
+        auto b_l_sorted = find_b_l_bj(v_b_jets, lepton);
+
+        auto b_l        = b_l_sorted.at(0);
+        auto b_j        = b_l_sorted.at(1);
+
+        return get_epsilon(b_l.get4P(), b_j.get4P(), lepton.get4P(), light_jet.get4P());
+}
+double calculate_operator_14(std::vector<jets> v_b_jets, leptons lepton, jets light_jet){
+        
+
+	TLorentzVector P(0,0,0,13000);
+        auto bjet        = v_b_jets.at(0);
+        auto bjetbar     = v_b_jets.at(1);
+
+        return get_epsilon(P, (bjet.get4P()+bjetbar.get4P()), lepton.get4P(), light_jet.get4P());
+}
+
+//double calculate_operator_10(std::vector<jets> v_b_jets, leptons lepton, jets light_jet){
+
+//	TLorentzVector q(0,0,13000,0)
+
+
+
+
+//}
